@@ -12,6 +12,7 @@ const SETTINGS = [
   { key: "winCondition", type: "choice", title: "Win rule", desc: "What players need for a reward.",
     options: [["line","One line"],["blackout","Full card"]], def: "blackout" },
   { key: "maxSignsPerPerson", type: "stepper", title: "Signs per person", desc: "How many squares one person can sign on a card.", min: 1, max: 5, def: 3 },
+  { key: "ownCollegeSigns", type: "stepper", title: "Own-college squares", desc: "How many squares people from the player's own college can sign. 0 = other colleges only.", min: 0, max: 12, def: 4 },
   { section: "Opening" },
   { key: "showSplash", type: "toggle", title: "Loading screen", desc: "MC Rangers × CCIA & SHHOISA intro.", def: false },
   { section: "Exco tiles" },

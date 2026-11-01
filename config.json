@@ -1,6 +1,7 @@
 {
   "winCondition": "blackout",
   "maxSignsPerPerson": 2,
+  "ownCollegeSigns": 4,
   "showSplash": true,
   "excoEnabled": true,
   "excoTiles": 4,

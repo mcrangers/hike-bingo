@@ -17,6 +17,8 @@ const CONFIG = {
   showSplash: false,
 
   /* ----- Exco-only tiles ----- */
+  // How many squares on a card can be signed by people from the player's OWN college (0 = none)
+  ownCollegeSigns: 4,
   excoEnabled: true,
   // How many exco-only tiles each card gets (0 = none)
   excoTiles: 4,
@@ -47,7 +49,7 @@ const CONFIG = {
 /* ---------- admin settings (config.json) ---------- */
 const RKEY = "trailbingo:remote";
 // Every setting the admin page can change. Add new admin toggles here.
-const REMOTE_KEYS = ["showSplash","winCondition","maxSignsPerPerson","excoEnabled","excoTiles","excoCodeHash","excoAnyCollege","excoSignsPerExco"];
+const REMOTE_KEYS = ["showSplash","winCondition","maxSignsPerPerson","ownCollegeSigns","excoEnabled","excoTiles","excoCodeHash","excoAnyCollege","excoSignsPerExco"];
 function applyRemote(r){ if(r && typeof r==="object") REMOTE_KEYS.forEach(k => { if(k in r) CONFIG[k] = r[k]; }); }
 try{ applyRemote(JSON.parse(localStorage.getItem(RKEY))); }catch(e){}
 const excoOn = () => CONFIG.excoEnabled !== false && Number(CONFIG.excoTiles) > 0;
@@ -88,6 +90,10 @@ function show(id){
 function refreshRules(){
   const mx = Number(CONFIG.maxSignsPerPerson) || 1;
   $("#ruleSigns").textContent = mx===1 ? "Each person can only sign one square, so keep meeting new people." : `Each person can sign up to ${mx} squares on your card, so keep meeting new people.`;
+  const own = Math.max(0, Number(CONFIG.ownCollegeSigns) || 0);
+  $("#ruleCollege").innerHTML = own === 0
+    ? "They must be from a <strong>different college</strong> than you."
+    : `Find people from <strong>other colleges</strong>. Only ${own} square${own===1?"":"s"} can be signed by people from your own college.`;
   $("#ruleExcoRow").classList.toggle("hidden", !excoOn());
   $("#ruleWin").textContent = CONFIG.winCondition==="blackout"
     ? "First to fill the whole card wins. Show your winning card to an MC Rangers exco."
@@ -142,8 +148,7 @@ function renderGame(popIdx){
   $("#bar").style.width = (dc/24*100)+"%";
   const won = hasWon();
   $("#banner").innerHTML = won
-    ? `<div class="banner"><div class="big">${dc===24?'FULL CARD':'BINGO'}</div><p>First to finish wins. Find an MC Rangers exco now.</p><button type="button" id="bTicket">Show</button></div>` : "";
-  const bt=$("#bTicket"); if(bt) bt.onclick=showTicket;
+    ? `<div class="banner"><div class="big">${dc===24?'FULL CARD':'BINGO'}</div><p>First to finish wins. Find an MC Rangers exco now.</p></div>` : "";
   $("#ticketBtn").classList.toggle("hidden", !won);
   if(won && !S.wonAt){ S.wonAt = Date.now(); save(); confetti(); }
 }
@@ -196,7 +201,15 @@ function openSheet(i){
       const exUsed = S.cells.filter((x,j)=>j!==i && xo(x) && x.who && norm(x.who)===norm(who)).length;
       if(exUsed >= exMax) return err(exMax===1 ? `${who} already signed an exco tile. Find a different exco member.` : `${who} has already signed ${exMax} exco tiles, the limit. Find a different exco member.`);
     }
-    if(!(xo(c) && CONFIG.excoAnyCollege) && norm(col)===norm(S.college)) return err(`They're from ${S.college} too. Find someone from another college.`);
+    const sameCol = norm(col)===norm(S.college);
+    if(sameCol && !(xo(c) && CONFIG.excoAnyCollege)){
+      // exco tiles don't count toward the own-college allowance
+      const own = Math.max(0, Number(CONFIG.ownCollegeSigns) || 0);
+      const ownUsed = S.cells.filter((x,j)=>j!==i && x.who && !xo(x) && norm(x.whoCollege)===norm(S.college)).length;
+      if(ownUsed >= own) return err(own===0
+        ? `They're from ${S.college} too. Find someone from another college.`
+        : `You've used all ${own} ${S.college} squares. Find someone from another college.`);
+    }
     if(norm(who)===norm(S.name)) return err("You can't sign your own square.");
     const max = CONFIG.maxSignsPerPerson || 1;
     const used = S.cells.filter((x,j)=>j!==i && x.who && norm(x.who)===norm(who)).length;
@@ -211,8 +224,7 @@ function showTicket(){
   $("#tTag").textContent = "Winning card · show an MC Rangers exco";
   $("#tTitle").textContent = dc===24 ? "FULL CARD" : "BINGO";
   $("#tName").textContent = S.name; $("#tCollege").textContent = S.college;
-  $("#tDone").textContent = dc+" / 24"; $("#tLines").textContent = completedLines().length;
-  $("#tCols").textContent = collegesMet();
+  $("#tPeople").textContent = new Set(S.cells.filter(c=>c.who).map(c=>norm(c.who))).size;
   const t = new Date(S.wonAt||Date.now());
   $("#tTime").textContent = t.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
   $("#tClock").textContent = t.toLocaleDateString([], {weekday:"short", day:"numeric", month:"short"});

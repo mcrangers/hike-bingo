@@ -61,7 +61,7 @@
       <button class="btn" type="submit">Get my bingo card</button>
       <div class="rules">
         <div class="rule"><b>1</b><span>Tap a square and find someone who matches it.</span></div>
-        <div class="rule"><b>2</b><span>They must be from a <strong>different college</strong> than you.</span></div>
+        <div class="rule"><b>2</b><span id="ruleCollege">Find people from <strong>other colleges</strong>. Only 4 squares can be signed by people from your own college.</span></div>
         <div class="rule"><b>3</b><span id="ruleSigns">Each person can sign up to 3 squares on your card, so keep meeting new people.</span></div>
         <div class="rule"><b>4</b><span id="ruleWin">First to get a full line wins. Show your winning card to an MC Rangers exco.</span></div>
         <div class="rule" id="ruleExcoRow"><b>5</b><span>Gold <strong>EXCO</strong> tiles can only be signed by an MC Rangers exco with the exco code.</span></div>
@@ -95,9 +95,7 @@
       <div class="body">
         <div class="kv"><span>Hiker</span><span id="tName"></span></div>
         <div class="kv"><span>College</span><span id="tCollege"></span></div>
-        <div class="kv"><span>Squares filled</span><span id="tDone"></span></div>
-        <div class="kv"><span>Bingo lines</span><span id="tLines"></span></div>
-        <div class="kv"><span>Colleges met</span><span id="tCols"></span></div>
+        <div class="kv"><span>People met</span><span id="tPeople"></span></div>
         <div class="finish"><span>Finished</span><strong id="tTime"></strong><em id="tClock"></em></div>
         <div class="tb-head">Whole card</div>
         <div class="tboard" id="tBoard" role="img" aria-label="The player's full bingo card"></div>

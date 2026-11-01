@@ -11,7 +11,7 @@
 
 ---
 
-Mixed-college hikes have a habit of splitting back into the same friend groups. Trail Bingo gives everyone a reason to talk to someone new: each player gets a shuffled 5×5 card and fills a square only by finding a hiker from a **different college** who matches the prompt.
+Mixed-college hikes have a habit of splitting back into the same friend groups. Trail Bingo gives everyone a reason to talk to someone new: each player gets a shuffled 5×5 card and fills squares by finding hikers who match the prompts, mostly from **other colleges** (only a few squares can be signed by their own college).
 
 ## Features
 
