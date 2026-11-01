@@ -30,19 +30,19 @@ const CONFIG = {
   excoSignsPerExco: 1,
   excoPrompts: [
     "Why they joined MC Rangers","Their best tip for this trail","High-five at a viewpoint",
-    "Their favourite hiking snack","One fun fact about them","Their best hike ever"
+    "Their go-to hike snack","One fun fact about them","Their best hike ever"
   ],
   /* ----- HK uni culture set (toggle + count in admin) ----- */
   hkEnabled: true,
   hkTiles: 6,          // how many of these go on each new card
   hkPrompts: [
-    "Will 報 status for you","Is proudly A0","Has 出 pool this year","Was a 組爸 or 組媽",
-    "Has done a City Hunt","Has 上莊 before","Teaches you 朱古力波彈彈波","Plays Ninja with you",
-    "Knows what 飛沙走奶 means","Does the MTR \u201cmind the gap\u201d voice","Pulled a 通頂 this month","Missed the 校巴 running for it",
-    "Says a Cantonese tongue twister","Teaches you 磁力王"
+    "Tells you their relationship status","Has never dated (proudly \u201cA0\u201d)","Got a partner this year","Was an O camp group leader",
+    "Has done a uni City Hunt","Has run a student society","Teaches you a HK hand game","Plays Ninja with you",
+    "Can order milk tea in Cantonese","Does the MTR \u201cmind the gap\u201d voice","Pulled an all-nighter this month","Missed the bus by seconds",
+    "Says a Cantonese tongue twister","Teaches you Cantonese slang"
   ],
   // These go on exco tiles first when the HK set is on
-  hkExcoPrompts: ["Teaches you a Black Magic","Does a Dem beat with you"],
+  hkExcoPrompts: ["Plays Black Magic","Does a Dem beat with you"],
 
   prompts: [
     "Has hiked Lion Rock before","Is a first-year student","Speaks 3 or more languages","Was born outside Hong Kong",
