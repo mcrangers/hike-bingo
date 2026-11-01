@@ -18,7 +18,7 @@ const SETTINGS = [
   { section: "Exco tiles" },
   { key: "excoEnabled", type: "toggle", title: "Exco tiles", desc: "Gold tiles only exco can sign. Off also unlocks them on cards in play.", def: true },
   { key: "excoTiles", type: "stepper", title: "Tiles per card", desc: "Applies to new cards.", min: 1, max: 6, def: 4, when: "excoEnabled" },
-  { key: "excoCodeHash", type: "secret", title: "Exco code", desc: "Exco type this to sign. Saved hashed, never public. 6+ characters is best.", def: "", when: "excoEnabled" },
+  { key: "excoCodeHash", type: "secret", title: "Exco code", desc: "Exco type this to sign. Only admins can see it here. 6+ characters is best.", def: "", when: "excoEnabled" },
   { key: "excoSignsPerExco", type: "stepper", title: "Exco tiles per exco", desc: "How many exco tiles one exco member can sign on a card.", min: 1, max: 6, def: 1, when: "excoEnabled" },
   { key: "excoAnyCollege", type: "toggle", title: "Exco from any college", desc: "Exco can sign even if they're from the player's college.", def: true, when: "excoEnabled" },
 ];
@@ -132,6 +132,23 @@ async function hashCode(code){
   return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+// The plain exco code is also kept encrypted (excoCodeEnc) so admins can see it.
+// Key is derived from the GitHub token, which only logged-in admins have.
+let plainCode = "", codeLocked = false;
+async function codeKey(){
+  const base = await crypto.subtle.importKey("raw", enc.encode(token), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt: enc.encode("mcrangers/hike-bingo/exco-view"), iterations: 100000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt","decrypt"]);
+}
+async function sealCode(code){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await codeKey(), enc.encode(code));
+  return { iv: toB64(iv), ct: toB64(ct) };
+}
+async function openCode(box){
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(box.iv) }, await codeKey(), fromB64(box.ct));
+  return dec.decode(pt);
+}
+
 /* ---------- settings ---------- */
 async function loadConfig(){
   const r = await gh("/contents/config.json?t=" + Date.now());
@@ -143,6 +160,8 @@ async function loadConfig(){
   saved._extra = Object.fromEntries(Object.entries(cfg).filter(([k]) => k !== "excoCode" && !SETTINGS.some(s => s.key === k)));
   values = JSON.parse(JSON.stringify(saved));
   if(cfg.excoCode && !cfg.excoCodeHash){ values.excoCodeHash = await hashCode(cfg.excoCode); saved._legacy = true; }
+  plainCode = ""; codeLocked = false;
+  if(cfg.excoCodeEnc){ try{ plainCode = await openCode(cfg.excoCodeEnc); }catch(e){ codeLocked = true; } }
   render();
   if(saved._legacy) status("The exco code is still in plain text. Press Save to hide it.", "bad");
 }
@@ -157,7 +176,7 @@ function render(){
     if(s.type === "stepper") ctl = `<div class="stepper"><button type="button" data-k="${s.key}" data-d="-1" aria-label="Less" ${v <= s.min ? "disabled" : ""}>−</button><output>${esc(v)}</output><button type="button" data-k="${s.key}" data-d="1" aria-label="More" ${v >= s.max ? "disabled" : ""}>+</button></div>`;
     if(s.type === "choice") ctl = `<div class="seg">${s.options.map(([val, lab]) => `<button type="button" data-k="${s.key}" data-v="${esc(val)}" class="${v === val ? "on" : ""}">${esc(lab)}</button>`).join("")}</div>`;
     if(s.type === "text") ctl = `<input type="text" data-k="${s.key}" value="${esc(v)}" maxlength="12" autocomplete="off" aria-label="${esc(s.title)}">`;
-    if(s.type === "secret") ctl = `<input type="password" data-k="${s.key}" value="" maxlength="32" autocomplete="new-password" spellcheck="false" placeholder="${v ? "Set · type to change" : "Not set"}" aria-label="${esc(s.title)}">`;
+    if(s.type === "secret") ctl = `<div class="secret"><input type="password" data-k="${s.key}" value="${esc(plainCode)}" maxlength="32" autocomplete="new-password" spellcheck="false" placeholder="${v ? "Type it once to see it" : "Not set"}" aria-label="${esc(s.title)}"><button type="button" class="eye" aria-label="Show code">Show</button></div>`;
     html += `<div class="set ${off ? "off" : ""} ${s.type === "choice" ? "wide" : ""}"><div><h3>${esc(s.title)}</h3><p>${esc(s.desc)}</p></div>${ctl}</div>`;
   });
   if(open) html += "</div>";
@@ -169,15 +188,28 @@ function render(){
   });
   $("#panels").querySelectorAll(".seg button").forEach(el => el.onclick = () => { values[el.dataset.k] = el.dataset.v; render(); });
   $("#panels").querySelectorAll("input[type=text]").forEach(el => el.oninput = () => { values[el.dataset.k] = el.value.trim(); dirty(); });
-  $("#panels").querySelectorAll("input[type=password]").forEach(el => el.oninput = async () => {
+  $("#panels").querySelectorAll(".secret input").forEach(el => el.oninput = async () => {
     const v = el.value.trim(), k = el.dataset.k;
-    values[k] = v ? await hashCode(v) : saved[k];
-    if(el.value.trim() === v) dirty();
+    plainCode = v;
+    if(!v){ values[k] = saved[k]; values._extra = JSON.parse(JSON.stringify(saved._extra)); return dirty(); }
+    const h = await hashCode(v), box = await sealCode(v);
+    if(el.value.trim() !== v) return;          // typed again meanwhile
+    values[k] = h; values._extra = { ...values._extra, excoCodeEnc: box };
+    dirty();
   });
+  $("#panels").querySelectorAll(".secret .eye").forEach(b => b.onclick = () => {
+    const i = b.previousElementSibling, show = i.type === "password";
+    i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show";
+    b.setAttribute("aria-label", show ? "Hide code" : "Show code");
+  });
+  if(values.excoEnabled && values.excoCodeHash && !plainCode && !saved._legacy)
+    status(codeLocked ? "The exco code was saved with an older admin key. Type it again and save to see it here." : "Type the exco code once and save, then you can always see it here.", "");
   dirty();
 }
 function dirty(){
-  const d = saved._legacy || JSON.stringify(values) !== JSON.stringify(saved);
+  const strip = o => JSON.stringify({ ...o, _extra: { ...o._extra, excoCodeEnc: 0 } });
+  const codeChanged = values.excoCodeHash !== saved.excoCodeHash || (!!values._extra.excoCodeEnc && !saved._extra.excoCodeEnc);
+  const d = saved._legacy || codeChanged || strip(values) !== strip(saved);
   $("#saveBtn").innerHTML = d ? '<span class="dirty"></span>Save changes' : "Saved";
   $("#saveBtn").disabled = !d;
   return d;
@@ -186,7 +218,7 @@ const output = () => { const o = { ...values._extra }; SETTINGS.forEach(s => { i
 
 $("#saveBtn").onclick = async () => {
   if(values.excoEnabled && !values.excoCodeHash) return status("Add an exco code first.", "bad");
-  const typed = $("#panels input[type=password]");
+  const typed = $("#panels .secret input");
   if(typed && typed.value.trim() && typed.value.trim().length < 4) return status("Make the exco code at least 4 characters (6+ is better).", "bad");
   $("#saveBtn").textContent = "Saving…"; $("#saveBtn").disabled = true; status("");
   const body = { message: "Admin: update settings", content: b64e(JSON.stringify(output(), null, 2) + "\n") };

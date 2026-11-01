@@ -42,7 +42,7 @@ The project is a static site on GitHub Pages: plain HTML, CSS and JavaScript, wi
 ## Security
 
 - **No plain-text secrets in the repo.** The admin page's GitHub token should be a fine-grained token limited to this repository's contents. It's encrypted in the browser with AES-GCM, using a key derived from the admin password with PBKDF2-SHA256 (600,000 iterations), and only the ciphertext is stored in `admin-key.json`.
-- **The exco code is hashed.** It's stored as a PBKDF2-SHA256 hash (`excoCodeHash`), so it never appears in the public files.
+- **The exco code is hashed.** It's stored as a PBKDF2-SHA256 hash (`excoCodeHash`), so it never appears in the public files. Admins can still view it: a copy is AES-GCM encrypted (`excoCodeEnc`) with a key derived from the admin GitHub token.
 - **Limits.** This is a static site, so every check runs on the phone. The rules keep the game fair for players who play along, but they aren't tamper-proof. That's a reasonable trade-off for a hike icebreaker, so don't use this setup for anything high-stakes.
 
 ## Run locally
