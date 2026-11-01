@@ -32,6 +32,18 @@ const CONFIG = {
     "Why they joined MC Rangers","Their best tip for this trail","High-five at a viewpoint",
     "Their favourite hiking snack","One fun fact about them","Their best hike ever"
   ],
+  /* ----- HK uni culture set (toggle + count in admin) ----- */
+  hkEnabled: true,
+  hkTiles: 6,          // how many of these go on each new card
+  hkPrompts: [
+    "Will 報 status for you","Is proudly A0","Has 出 pool this year","Was a 組爸 or 組媽",
+    "Has done a City Hunt","Has 上莊 before","Teaches you 朱古力波彈彈波","Plays Ninja with you",
+    "Knows what 飛沙走奶 means","Does the MTR \u201cmind the gap\u201d voice","Pulled a 通頂 this month","Missed the 校巴 running for it",
+    "Says a Cantonese tongue twister","Teaches you 磁力王"
+  ],
+  // These go on exco tiles first when the HK set is on
+  hkExcoPrompts: ["Teaches you a Black Magic","Does a Dem beat with you"],
+
   prompts: [
     "Has hiked Lion Rock before","Is a first-year student","Speaks 3 or more languages","Was born outside Hong Kong",
     "Can name 3 HK hiking trails","Has watched a sunrise from a peak","Brought more than 2 snacks","Has a pet at home",
@@ -48,7 +60,7 @@ const CONFIG = {
 /* ---------- admin settings (config.json) ---------- */
 const RKEY = "trailbingo:remote";
 // Every setting the admin page can change. Add new admin toggles here.
-const REMOTE_KEYS = ["showSplash","winCondition","maxSignsPerPerson","ownCollegeSigns","excoEnabled","excoTiles","excoCode","excoCodeHash","excoAnyCollege","excoSignsPerExco"];
+const REMOTE_KEYS = ["showSplash","winCondition","maxSignsPerPerson","ownCollegeSigns","excoEnabled","excoTiles","excoCode","excoCodeHash","excoAnyCollege","excoSignsPerExco","hkEnabled","hkTiles"];
 function applyRemote(r){ if(r && typeof r==="object") REMOTE_KEYS.forEach(k => { if(k in r) CONFIG[k] = r[k]; }); }
 try{ applyRemote(JSON.parse(localStorage.getItem(RKEY))); }catch(e){}
 const excoOn = () => CONFIG.excoEnabled !== false && Number(CONFIG.excoTiles) > 0;
@@ -110,10 +122,14 @@ function initSetup(){
     if(college==="__other") college = $("#pCollegeOther").value.trim();
     if(!name) return $("#setupErr").textContent = "Add your name first.";
     if(!college) return $("#setupErr").textContent = "Pick your college.";
-    const nEx = Math.min(excoOn() ? Number(CONFIG.excoTiles) : 0, (CONFIG.excoPrompts||[]).length, 24);
+    const hkOn = CONFIG.hkEnabled !== false;
+    const exPool = [...(hkOn ? shuffle(CONFIG.hkExcoPrompts||[]) : []), ...shuffle(CONFIG.excoPrompts||[])];
+    const nEx = Math.min(excoOn() ? Number(CONFIG.excoTiles) : 0, exPool.length, 24);
+    const nHk = hkOn ? Math.min(Math.max(0, Number(CONFIG.hkTiles) || 0), (CONFIG.hkPrompts||[]).length, 24-nEx) : 0;
     const picks = shuffle([
-      ...shuffle(CONFIG.prompts).slice(0,24-nEx).map(p=>({ prompt:p })),
-      ...shuffle(CONFIG.excoPrompts||[]).slice(0,nEx).map(p=>({ prompt:p, exco:true }))
+      ...shuffle(CONFIG.hkPrompts||[]).slice(0,nHk).map(p=>({ prompt:p })),
+      ...shuffle(CONFIG.prompts).slice(0,24-nEx-nHk).map(p=>({ prompt:p })),
+      ...exPool.slice(0,nEx).map(p=>({ prompt:p, exco:true }))
     ]);
     picks.splice(12,0,{ prompt:null }); // free centre
     S = { name, college, startedAt: Date.now(), cells: picks.map(p=>({ ...p, who:null, whoCollege:null, note:"" })), wonAt:null };
