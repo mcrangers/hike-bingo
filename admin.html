@@ -22,25 +22,14 @@
     <div id="topRight"></div>
   </div>
 
-  <!-- PASSWORD LOGIN -->
-  <section id="login" class="hidden">
-    <form class="card-ui" id="loginForm" novalidate>
-      <label for="pw">Admin password</label>
-      <input type="password" id="pw" autocomplete="current-password" placeholder="Your admin password">
-      <div class="err" id="loginErr"></div>
-      <button class="btn dark" type="submit" id="loginBtn">Log in</button>
-      <button class="linkbtn" type="button" id="toSetup">Set up or change the admin password</button>
-    </form>
-  </section>
-
-  <!-- ONE-TIME SETUP -->
+  <!-- CONNECT (once per phone) -->
   <section id="setupKey" class="hidden">
     <form class="card-ui" id="setupForm" novalidate>
-      <div class="tag">One-time setup</div>
-      <h2 class="h2">Create your admin password</h2>
-      <p class="sub">Paste a GitHub key once and pick a password. After that you only need the password, on any phone.</p>
+      <div class="tag">Connect this phone</div>
+      <h2 class="h2">Paste your GitHub key</h2>
+      <p class="sub">Only needed once on each phone. The admin page saves settings to the site through this key.</p>
       <label for="tok">GitHub key</label>
-      <input type="password" id="tok" autocomplete="off" placeholder="github_pat_…" spellcheck="false">
+      <input type="password" id="tok" autocomplete="off" placeholder="github_pat_… or ghp_…" spellcheck="false">
       <details>
         <summary>How do I get a GitHub key?</summary>
         <ol>
@@ -49,13 +38,8 @@
           <li>Permissions → Repository → <strong>Contents: Read and write</strong>. Set the expiry past the hike date.</li>
         </ol>
       </details>
-      <label for="np1">New admin password</label>
-      <input type="password" id="np1" autocomplete="new-password" placeholder="At least 8 characters">
-      <label for="np2">Repeat password</label>
-      <input type="password" id="np2" autocomplete="new-password">
       <div class="err" id="setupErr"></div>
-      <button class="btn dark" type="submit" id="setupBtn">Save and log in</button>
-      <button class="linkbtn hidden" type="button" id="toLogin">Back to login</button>
+      <button class="btn dark" type="submit" id="setupBtn">Connect</button>
     </form>
   </section>
 

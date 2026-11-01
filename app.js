@@ -22,9 +22,8 @@ const CONFIG = {
   excoEnabled: true,
   // How many exco-only tiles each card gets (0 = none)
   excoTiles: 4,
-  // Exco sign exco tiles with a secret code. Only its PBKDF2 hash is published
-  // (see hashCode below); set or change the code from admin.html.
-  excoCodeHash: "",
+  // Code exco type to sign an exco tile. Set it from admin.html.
+  excoCode: "",
   // true = exco can sign even if they're from the player's own college
   excoAnyCollege: true,
   // How many exco tiles the same exco member can sign on one card
@@ -49,13 +48,13 @@ const CONFIG = {
 /* ---------- admin settings (config.json) ---------- */
 const RKEY = "trailbingo:remote";
 // Every setting the admin page can change. Add new admin toggles here.
-const REMOTE_KEYS = ["showSplash","winCondition","maxSignsPerPerson","ownCollegeSigns","excoEnabled","excoTiles","excoCodeHash","excoAnyCollege","excoSignsPerExco"];
+const REMOTE_KEYS = ["showSplash","winCondition","maxSignsPerPerson","ownCollegeSigns","excoEnabled","excoTiles","excoCode","excoCodeHash","excoAnyCollege","excoSignsPerExco"];
 function applyRemote(r){ if(r && typeof r==="object") REMOTE_KEYS.forEach(k => { if(k in r) CONFIG[k] = r[k]; }); }
 try{ applyRemote(JSON.parse(localStorage.getItem(RKEY))); }catch(e){}
 const excoOn = () => CONFIG.excoEnabled !== false && Number(CONFIG.excoTiles) > 0;
 const xo = c => !!(c && c.exco && CONFIG.excoEnabled !== false);
 
-// Must match hashCode() in admin.js
+// Only for an older hidden code (excoCodeHash); a plain excoCode replaces it
 async function hashCode(code){
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey("raw", enc.encode(String(code).trim().toLowerCase()), "PBKDF2", false, ["deriveBits"]);
@@ -196,7 +195,9 @@ function openSheet(i){
     if(xo(c)){
       const typed = ($("#wCode").value||"").trim();
       if(!typed) return err("Ask an MC Rangers exco to type the exco code.");
-      if(!CONFIG.excoCodeHash || await hashCode(typed) !== CONFIG.excoCodeHash) return err("That exco code isn't right. Only exco know it.");
+      const ok = CONFIG.excoCode ? norm(typed) === norm(CONFIG.excoCode)
+        : !!CONFIG.excoCodeHash && await hashCode(typed) === CONFIG.excoCodeHash;
+      if(!ok) return err("That exco code isn't right. Only exco know it.");
       const exMax = Math.max(1, Number(CONFIG.excoSignsPerExco) || 1);
       const exUsed = S.cells.filter((x,j)=>j!==i && xo(x) && x.who && norm(x.who)===norm(who)).length;
       if(exUsed >= exMax) return err(exMax===1 ? `${who} already signed an exco tile. Find a different exco member.` : `${who} has already signed ${exMax} exco tiles, the limit. Find a different exco member.`);

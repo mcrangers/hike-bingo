@@ -32,18 +32,19 @@ The project is a static site on GitHub Pages: plain HTML, CSS and JavaScript, wi
 | `index.html`, `style.css`, `app.js` | The game |
 | `config.json` | Live settings, read by the game on launch and written by the admin page |
 | `admin.html`, `admin.css`, `admin.js` | Settings dashboard for organisers |
-| `admin-key.json` | Encrypted GitHub token used by the admin page (see Security) |
 | `sw.js`, `manifest.webmanifest`, `icons/` | Offline support and home-screen install |
 
 ### Admin page
 
 `admin.html` reads and writes `config.json` through the GitHub Contents API. Saving a setting creates a commit, Pages redeploys it, and phones pick up the change the next time they open the app. Settings come from a small schema (`SETTINGS` in `admin.js`), so adding a toggle only takes one line there plus a key in `REMOTE_KEYS` in `app.js`.
 
-## Security
+## Keep it simple
 
-- **No plain-text secrets in the repo.** The admin page's GitHub token should be a fine-grained token limited to this repository's contents. It's encrypted in the browser with AES-GCM, using a key derived from the admin password with PBKDF2-SHA256 (600,000 iterations), and only the ciphertext is stored in `admin-key.json`.
-- **The exco code is hashed.** It's stored as a PBKDF2-SHA256 hash (`excoCodeHash`), so it never appears in the public files. Admins can still view it: a copy is AES-GCM encrypted (`excoCodeEnc`) with a key derived from the admin GitHub token.
-- **Limits.** This is a static site, so every check runs on the phone. The rules keep the game fair for players who play along, but they aren't tamper-proof. That's a reasonable trade-off for a hike icebreaker, so don't use this setup for anything high-stakes.
+This is a one-day fun game, so it keeps security light on purpose:
+
+- **Admin access:** the admin page needs a GitHub key with write access to this repo. You paste it once on each phone, and it stays only on that phone (never in the repo).
+- **Exco code:** it's stored in `config.json`, so anyone who opens that file can read it. That's fine for a hike icebreaker.
+- **Game rules:** every check runs on the phone, so the rules keep things fair for people playing along, but they aren't tamper-proof.
 
 ## Run locally
 

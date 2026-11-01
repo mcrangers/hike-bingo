@@ -1,12 +1,11 @@
 /* Admin page: reads and writes config.json in the GitHub repo.
- * Login: the GitHub key is stored encrypted (AES-GCM, PBKDF2) in admin-key.json.
- * Only the admin password can unlock it, so the repo never contains the real key. */
+ * The GitHub key is pasted once per phone and kept in that phone's localStorage. */
 const OWNER = "mcrangers", REPO = "hike-bingo";
 const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const TKEY = "trailbingo:adminKey";
 
 /* ===== Admin settings: add new toggles here (and the key to REMOTE_KEYS in app.js) =====
- * type: toggle | stepper | choice | text | secret (hashed before saving).  `when` hides/greys it unless another setting is on. */
+ * type: toggle | stepper | choice | text.  `when` hides/greys it unless another setting is on. */
 const SETTINGS = [
   { section: "Game" },
   { key: "winCondition", type: "choice", title: "Win rule", desc: "What players need for a reward.",
@@ -18,7 +17,7 @@ const SETTINGS = [
   { section: "Exco tiles" },
   { key: "excoEnabled", type: "toggle", title: "Exco tiles", desc: "Gold tiles only exco can sign. Off also unlocks them on cards in play.", def: true },
   { key: "excoTiles", type: "stepper", title: "Tiles per card", desc: "Applies to new cards.", min: 1, max: 6, def: 4, when: "excoEnabled" },
-  { key: "excoCodeHash", type: "secret", title: "Exco code", desc: "Exco type this to sign. Only admins can see it here. 6+ characters is best.", def: "", when: "excoEnabled" },
+  { key: "excoCode", type: "text", title: "Exco code", desc: "Exco type this to sign.", def: "", when: "excoEnabled" },
   { key: "excoSignsPerExco", type: "stepper", title: "Exco tiles per exco", desc: "How many exco tiles one exco member can sign on a card.", min: 1, max: 6, def: 1, when: "excoEnabled" },
   { key: "excoAnyCollege", type: "toggle", title: "Exco from any college", desc: "Exco can sign even if they're from the player's college.", def: true, when: "excoEnabled" },
 ];
@@ -60,94 +59,22 @@ async function explain(r){
   return "Couldn't save (" + r.status + "). " + msg;
 }
 
-/* ---------- password crypto ---------- */
-const enc = new TextEncoder(), dec = new TextDecoder();
-const toB64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
-const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-async function derive(pw, salt, iter){
-  const base = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt","decrypt"]);
-}
-async function lock(tok, pw){
-  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)), iter = 600000;
-  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await derive(pw, salt, iter), enc.encode(tok));
-  return { v: 1, iter, salt: toB64(salt), iv: toB64(iv), ct: toB64(ct) };
-}
-async function unlock(box, pw){
-  try{
-    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(box.iv) }, await derive(pw, fromB64(box.salt), box.iter), fromB64(box.ct));
-    return dec.decode(pt);
-  }catch(e){ throw new Error("Wrong password."); }
-}
-const getBox = () => fetch("admin-key.json?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
-
 /* ---------- screens ---------- */
-const only = id => ["login","setupKey","settings"].forEach(s => $("#" + s).classList.toggle("hidden", s !== id));
+const only = id => ["setupKey","settings"].forEach(s => $("#" + s).classList.toggle("hidden", s !== id));
 async function enter(){
   await loadConfig(); only("settings");
-  $("#topRight").innerHTML = '<button class="ghost" id="outBtn" type="button">Log out</button>';
+  $("#topRight").innerHTML = '<button class="ghost" id="outBtn" type="button">Disconnect</button>';
   $("#outBtn").onclick = () => { localStorage.removeItem(TKEY); location.reload(); };
 }
-
-$("#loginForm").onsubmit = async e => {
-  e.preventDefault();
-  const pw = $("#pw").value; if(!pw) return;
-  $("#loginBtn").textContent = "Unlocking…"; $("#loginErr").textContent = "";
-  try{
-    const box = await getBox(); if(!box) throw new Error("No admin password set up yet.");
-    const tok = await unlock(box, pw);
-    await checkKey(tok);
-    token = tok; localStorage.setItem(TKEY, tok); await enter();
-  }catch(err){
-    $("#loginErr").textContent = /expired|valid/.test(err.message) ? "The saved GitHub key has expired. Use “Set up or change the admin password” with a new key." : err.message;
-  }
-  $("#loginBtn").textContent = "Log in";
-};
-$("#toSetup").onclick = () => { only("setupKey"); $("#toLogin").classList.remove("hidden"); };
-$("#toLogin").onclick = () => only("login");
 $("#setupForm").onsubmit = async e => {
   e.preventDefault();
-  const tok = $("#tok").value.trim(), p1 = $("#np1").value, p2 = $("#np2").value;
-  const err = m => $("#setupErr").textContent = m;
+  const tok = $("#tok").value.trim(), err = m => $("#setupErr").textContent = m;
   if(!tok) return err("Paste your GitHub key.");
-  if(p1.length < 8) return err("Use at least 8 characters for the password.");
-  if(p1 !== p2) return err("The passwords don't match.");
-  $("#setupBtn").textContent = "Saving…"; err("");
-  try{
-    await checkKey(tok);
-    const box = await lock(tok, p1);
-    token = tok;
-    await putFile("admin-key.json", JSON.stringify(box, null, 2) + "\n", "Admin: set admin password");
-    localStorage.setItem(TKEY, tok); await enter();
-    status("Password set. Next time just type it to log in, on any phone.", "ok");
-  }catch(e2){ err(e2.message); }
-  $("#setupBtn").textContent = "Save and log in";
+  $("#setupBtn").textContent = "Connecting…"; err("");
+  try{ await checkKey(tok); token = tok; localStorage.setItem(TKEY, tok); await enter(); }
+  catch(e2){ err(e2.message); }
+  $("#setupBtn").textContent = "Connect";
 };
-
-// Must match hashCode() in app.js
-async function hashCode(code){
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", enc.encode(String(code).trim().toLowerCase()), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: enc.encode("mcrangers/hike-bingo/exco"), iterations: 100000 }, key, 256);
-  return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-// The plain exco code is also kept encrypted (excoCodeEnc) so admins can see it.
-// Key is derived from the GitHub token, which only logged-in admins have.
-let plainCode = "", codeLocked = false;
-async function codeKey(){
-  const base = await crypto.subtle.importKey("raw", enc.encode(token), "PBKDF2", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey({ name: "PBKDF2", salt: enc.encode("mcrangers/hike-bingo/exco-view"), iterations: 100000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt","decrypt"]);
-}
-async function sealCode(code){
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await codeKey(), enc.encode(code));
-  return { iv: toB64(iv), ct: toB64(ct) };
-}
-async function openCode(box){
-  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(box.iv) }, await codeKey(), fromB64(box.ct));
-  return dec.decode(pt);
-}
 
 /* ---------- settings ---------- */
 async function loadConfig(){
@@ -156,14 +83,11 @@ async function loadConfig(){
   let cfg = {};
   if(r.ok){ const j = await r.json(); sha = j.sha; cfg = JSON.parse(b64d(j.content)); } else sha = null;
   saved = {}; SETTINGS.forEach(s => { if(s.key) saved[s.key] = (s.key in cfg) ? cfg[s.key] : s.def; });
-  // excoCode = the old plain-text setting; it is replaced by excoCodeHash on the next save
-  saved._extra = Object.fromEntries(Object.entries(cfg).filter(([k]) => k !== "excoCode" && !SETTINGS.some(s => s.key === k)));
+  // excoCodeHash/excoCodeEnc: older hidden-code settings, dropped once a plain code is saved
+  saved._extra = Object.fromEntries(Object.entries(cfg).filter(([k]) => !SETTINGS.some(s => s.key === k)));
   values = JSON.parse(JSON.stringify(saved));
-  if(cfg.excoCode && !cfg.excoCodeHash){ values.excoCodeHash = await hashCode(cfg.excoCode); saved._legacy = true; }
-  plainCode = ""; codeLocked = false;
-  if(cfg.excoCodeEnc){ try{ plainCode = await openCode(cfg.excoCodeEnc); }catch(e){ codeLocked = true; } }
   render();
-  if(saved._legacy) status("The exco code is still in plain text. Press Save to hide it.", "bad");
+  if(values.excoEnabled && !values.excoCode && cfg.excoCodeHash) status("Type the exco code in once and save. Then it shows here.", "");
 }
 
 function render(){
@@ -175,8 +99,7 @@ function render(){
     if(s.type === "toggle") ctl = `<label class="switch" aria-label="${esc(s.title)}"><input type="checkbox" data-k="${s.key}" ${v ? "checked" : ""}><span></span></label>`;
     if(s.type === "stepper") ctl = `<div class="stepper"><button type="button" data-k="${s.key}" data-d="-1" aria-label="Less" ${v <= s.min ? "disabled" : ""}>−</button><output>${esc(v)}</output><button type="button" data-k="${s.key}" data-d="1" aria-label="More" ${v >= s.max ? "disabled" : ""}>+</button></div>`;
     if(s.type === "choice") ctl = `<div class="seg">${s.options.map(([val, lab]) => `<button type="button" data-k="${s.key}" data-v="${esc(val)}" class="${v === val ? "on" : ""}">${esc(lab)}</button>`).join("")}</div>`;
-    if(s.type === "text") ctl = `<input type="text" data-k="${s.key}" value="${esc(v)}" maxlength="12" autocomplete="off" aria-label="${esc(s.title)}">`;
-    if(s.type === "secret") ctl = `<div class="secret"><input type="password" data-k="${s.key}" value="${esc(plainCode)}" maxlength="32" autocomplete="new-password" spellcheck="false" placeholder="${v ? "Type it once to see it" : "Not set"}" aria-label="${esc(s.title)}"><button type="button" class="eye" aria-label="Show code">Show</button></div>`;
+    if(s.type === "text") ctl = `<input type="text" data-k="${s.key}" value="${esc(v)}" maxlength="20" autocomplete="off" spellcheck="false" aria-label="${esc(s.title)}">`;
     html += `<div class="set ${off ? "off" : ""} ${s.type === "choice" ? "wide" : ""}"><div><h3>${esc(s.title)}</h3><p>${esc(s.desc)}</p></div>${ctl}</div>`;
   });
   if(open) html += "</div>";
@@ -188,38 +111,22 @@ function render(){
   });
   $("#panels").querySelectorAll(".seg button").forEach(el => el.onclick = () => { values[el.dataset.k] = el.dataset.v; render(); });
   $("#panels").querySelectorAll("input[type=text]").forEach(el => el.oninput = () => { values[el.dataset.k] = el.value.trim(); dirty(); });
-  $("#panels").querySelectorAll(".secret input").forEach(el => el.oninput = async () => {
-    const v = el.value.trim(), k = el.dataset.k;
-    plainCode = v;
-    if(!v){ values[k] = saved[k]; values._extra = JSON.parse(JSON.stringify(saved._extra)); return dirty(); }
-    const h = await hashCode(v), box = await sealCode(v);
-    if(el.value.trim() !== v) return;          // typed again meanwhile
-    values[k] = h; values._extra = { ...values._extra, excoCodeEnc: box };
-    dirty();
-  });
-  $("#panels").querySelectorAll(".secret .eye").forEach(b => b.onclick = () => {
-    const i = b.previousElementSibling, show = i.type === "password";
-    i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show";
-    b.setAttribute("aria-label", show ? "Hide code" : "Show code");
-  });
-  if(values.excoEnabled && values.excoCodeHash && !plainCode && !saved._legacy)
-    status(codeLocked ? "The exco code was saved with an older admin key. Type it again and save to see it here." : "Type the exco code once and save, then you can always see it here.", "");
   dirty();
 }
 function dirty(){
-  const strip = o => JSON.stringify({ ...o, _extra: { ...o._extra, excoCodeEnc: 0 } });
-  const codeChanged = values.excoCodeHash !== saved.excoCodeHash || (!!values._extra.excoCodeEnc && !saved._extra.excoCodeEnc);
-  const d = saved._legacy || codeChanged || strip(values) !== strip(saved);
+  const d = JSON.stringify(values) !== JSON.stringify(saved);
   $("#saveBtn").innerHTML = d ? '<span class="dirty"></span>Save changes' : "Saved";
   $("#saveBtn").disabled = !d;
   return d;
 }
-const output = () => { const o = { ...values._extra }; SETTINGS.forEach(s => { if(s.key) o[s.key] = values[s.key]; }); return o; };
+const output = () => {
+  const o = { ...values._extra }; SETTINGS.forEach(s => { if(s.key) o[s.key] = values[s.key]; });
+  if(o.excoCode){ delete o.excoCodeHash; delete o.excoCodeEnc; }
+  return o;
+};
 
 $("#saveBtn").onclick = async () => {
-  if(values.excoEnabled && !values.excoCodeHash) return status("Add an exco code first.", "bad");
-  const typed = $("#panels .secret input");
-  if(typed && typed.value.trim() && typed.value.trim().length < 4) return status("Make the exco code at least 4 characters (6+ is better).", "bad");
+  if(values.excoEnabled && !values.excoCode && !values._extra.excoCodeHash) return status("Add an exco code first.", "bad");
   $("#saveBtn").textContent = "Saving…"; $("#saveBtn").disabled = true; status("");
   const body = { message: "Admin: update settings", content: b64e(JSON.stringify(output(), null, 2) + "\n") };
   if(sha) body.sha = sha;
@@ -248,7 +155,5 @@ function status(m, cls = ""){ const s = $("#status"); s.textContent = m; s.class
     try{ await checkKey(token); await enter(); return; }
     catch(e){ localStorage.removeItem(TKEY); token = ""; }
   }
-  const box = await getBox();
-  if(box){ only("login"); setTimeout(() => $("#pw").focus(), 50); }
-  else only("setupKey");
+  only("setupKey"); setTimeout(() => $("#tok").focus(), 50);
 })();
