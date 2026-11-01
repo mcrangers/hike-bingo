@@ -90,8 +90,8 @@ function refreshRules(){
   $("#ruleSigns").textContent = mx===1 ? "Each person can only sign one square, so keep meeting new people." : `Each person can sign up to ${mx} squares on your card, so keep meeting new people.`;
   $("#ruleExcoRow").classList.toggle("hidden", !excoOn());
   $("#ruleWin").textContent = CONFIG.winCondition==="blackout"
-    ? "Fill the whole card, then show your reward ticket to an organiser."
-    : "Get a full line for a BINGO, then show your reward ticket to an organiser.";
+    ? "First to fill the whole card wins. Show your winning card to an MC Rangers exco."
+    : "First to get a full line wins. Show your winning card to an MC Rangers exco.";
 }
 
 function initSetup(){
@@ -124,15 +124,6 @@ function doneCount(){ return S.cells.filter((c,i)=>i!==12 && c.who).length }
 function collegesMet(){ return new Set(S.cells.filter(c=>c.who).map(c=>norm(c.whoCollege))).size }
 function hasWon(){ return CONFIG.winCondition==="blackout" ? doneCount()===24 : completedLines().length>0 }
 
-function code(){
-  // short verification code from the card contents
-  const str = S.name+"|"+S.college+"|"+S.cells.map(c=>c.who?norm(c.who)+norm(c.whoCollege):"").join(",");
-  let h = 2166136261; for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h,16777619) }
-  const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let out=""; h>>>=0;
-  for(let i=0;i<6;i++){ out+=A[h%A.length]; h=Math.floor(h/A.length) || (h^0x9e3779b9)>>>0 }
-  return out.slice(0,3)+"-"+out.slice(3);
-}
-
 /* ---------- render ---------- */
 function renderGame(popIdx){
   const winSet = new Set(completedLines().flat());
@@ -151,7 +142,7 @@ function renderGame(popIdx){
   $("#bar").style.width = (dc/24*100)+"%";
   const won = hasWon();
   $("#banner").innerHTML = won
-    ? `<div class="banner"><div class="big">${dc===24?'FULL CARD':'BINGO'}</div><p>${dc===24?'Every square done. Legend.':'Keep going for a full card.'}</p><button type="button" id="bTicket">Claim</button></div>` : "";
+    ? `<div class="banner"><div class="big">${dc===24?'FULL CARD':'BINGO'}</div><p>First to finish wins. Find an MC Rangers exco now.</p><button type="button" id="bTicket">Show</button></div>` : "";
   const bt=$("#bTicket"); if(bt) bt.onclick=showTicket;
   $("#ticketBtn").classList.toggle("hidden", !won);
   if(won && !S.wonAt){ S.wonAt = Date.now(); save(); confetti(); }
@@ -164,7 +155,7 @@ function openSheet(i){
     <form class="sheet" id="sheetForm" role="dialog" aria-modal="true" aria-labelledby="shTitle" novalidate>
       <div class="tag">${xo(c)?'Exco-only tile':'Find someone who…'}</div>
       <h2 id="shTitle">${esc(c.prompt)}</h2>
-      <p class="sub">${xo(c) ? 'Find an exco member. They type their name and the exco code to sign.' : `They must be from a college other than ${esc(S.college)}.`}</p>
+      <p class="sub">${xo(c) ? 'Find an MC Rangers exco. They type their name and the exco code to sign.' : `They must be from a college other than ${esc(S.college)}.`}</p>
       <label for="wName">${xo(c)?'Exco name':'Their name'}</label>
       <input type="text" id="wName" maxlength="40" placeholder="Ask them to type it" value="${esc(c.who||"")}">
       <label for="wCollege">Their college</label>
@@ -199,7 +190,7 @@ function openSheet(i){
     if(!col) return err("Pick their college.");
     if(xo(c)){
       const typed = ($("#wCode").value||"").trim();
-      if(!typed) return err("Ask an exco member to type the exco code.");
+      if(!typed) return err("Ask an MC Rangers exco to type the exco code.");
       if(!CONFIG.excoCodeHash || await hashCode(typed) !== CONFIG.excoCodeHash) return err("That exco code isn't right. Only exco know it.");
       const exMax = Math.max(1, Number(CONFIG.excoSignsPerExco) || 1);
       const exUsed = S.cells.filter((x,j)=>j!==i && xo(x) && x.who && norm(x.who)===norm(who)).length;
@@ -217,14 +208,19 @@ function openSheet(i){
 
 function showTicket(){
   const dc = doneCount();
-  $("#tTag").textContent = CONFIG.eventName + " · reward ticket";
+  $("#tTag").textContent = "Winning card · show an MC Rangers exco";
   $("#tTitle").textContent = dc===24 ? "FULL CARD" : "BINGO";
   $("#tName").textContent = S.name; $("#tCollege").textContent = S.college;
   $("#tDone").textContent = dc+" / 24"; $("#tLines").textContent = completedLines().length;
-  $("#tCols").textContent = collegesMet(); $("#tCode").textContent = code();
+  $("#tCols").textContent = collegesMet();
   const t = new Date(S.wonAt||Date.now());
-  $("#tClock").textContent = "Completed " + t.toLocaleString([], {dateStyle:"medium", timeStyle:"short"});
-  $("#tPeople").innerHTML = S.cells.filter(c=>c.who).map(c=>`<div><span>${esc(c.who)}${xo(c)?' <b class="xmini">EXCO</b>':''}</span><span>${esc(c.whoCollege)}</span></div>`).join("");
+  $("#tTime").textContent = t.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  $("#tClock").textContent = t.toLocaleDateString([], {weekday:"short", day:"numeric", month:"short"});
+  // The whole card, so the exco can check every square and who signed it
+  const win = new Set(completedLines().flat());
+  $("#tBoard").innerHTML = S.cells.map((c,i) => i===12
+    ? `<div class="tc free">FREE</div>`
+    : `<div class="tc ${c.who?'done':''} ${xo(c)?'exco':''} ${win.has(i)?'win':''}"><span class="p">${esc(c.prompt)}</span>${c.who?`<b>${esc(c.who)}</b><i>${esc(c.whoCollege)}</i>`:'<i>–</i>'}</div>`).join("");
   show("reward");
 }
 

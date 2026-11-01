@@ -63,8 +63,8 @@
         <div class="rule"><b>1</b><span>Tap a square and find someone who matches it.</span></div>
         <div class="rule"><b>2</b><span>They must be from a <strong>different college</strong> than you.</span></div>
         <div class="rule"><b>3</b><span id="ruleSigns">Each person can sign up to 3 squares on your card, so keep meeting new people.</span></div>
-        <div class="rule"><b>4</b><span id="ruleWin">Get a full line for a BINGO, then show your reward ticket to an organiser.</span></div>
-        <div class="rule" id="ruleExcoRow"><b>5</b><span>Gold <strong>EXCO</strong> tiles can only be signed by an exco member with the exco code.</span></div>
+        <div class="rule"><b>4</b><span id="ruleWin">First to get a full line wins. Show your winning card to an MC Rangers exco.</span></div>
+        <div class="rule" id="ruleExcoRow"><b>5</b><span>Gold <strong>EXCO</strong> tiles can only be signed by an MC Rangers exco with the exco code.</span></div>
       </div>
     </form>
   </section>
@@ -81,7 +81,7 @@
     <div class="board" id="board" role="grid" aria-label="Bingo card"></div>
     <p class="hint">Tap a square to log who you met.</p>
     <div id="banner"></div>
-    <button class="btn dark" id="ticketBtn" type="button">View my reward ticket</button>
+    <button class="btn dark" id="ticketBtn" type="button">View my winning card</button>
   </section>
 
   <!-- REWARD -->
@@ -98,9 +98,9 @@
         <div class="kv"><span>Squares filled</span><span id="tDone"></span></div>
         <div class="kv"><span>Bingo lines</span><span id="tLines"></span></div>
         <div class="kv"><span>Colleges met</span><span id="tCols"></span></div>
-        <div class="code" id="tCode">----</div>
-        <div class="clock" id="tClock"></div>
-        <div class="people" id="tPeople"></div>
+        <div class="finish"><span>Finished</span><strong id="tTime"></strong><em id="tClock"></em></div>
+        <div class="tb-head">Whole card</div>
+        <div class="tboard" id="tBoard" role="img" aria-label="The player's full bingo card"></div>
       </div>
     </div>
     <button class="btn" id="backBtn" type="button">Back to my card</button>

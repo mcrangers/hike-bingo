@@ -17,8 +17,8 @@ Mixed-college hikes have a habit of splitting back into the same friend groups. 
 
 - **Shuffled cards:** every player gets a different 5×5 card with a free centre square.
 - **Rules built in:** same-college signatures are blocked, and each person can sign a limited number of squares on one card.
-- **Exco tiles:** gold squares that only organisers can sign, using a shared code.
-- **Reward ticket:** finishing the card unlocks a ticket with a check code to show organisers.
+- **Exco tiles:** gold squares that only MC Rangers exco can sign, using a shared code.
+- **Winning card:** the first player to finish shows an MC Rangers exco a summary with their finish time and the whole signed board.
 - **Works offline:** a service worker keeps the app working on the trail with no signal, and players can install it to their home screen.
 - **No backend:** each card is saved on the phone, and nothing is tracked or sent anywhere.
 - **Admin page:** organisers can change settings live from a phone, without touching code.
