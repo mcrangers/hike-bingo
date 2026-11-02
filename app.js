@@ -32,7 +32,8 @@ const CONFIG = {
     "Why they joined MC Rangers","Their best tip for this trail","High-five at a viewpoint",
     "Their go-to hike snack","One fun fact about them","Their best hike ever",
     "Plays Black Magic","Does a Dem beat with you","Tells you their relationship status",
-    "Has never dated (proudly \u201cA0\u201d)","Was an O camp group leader"
+    "Has never dated (proudly \u201cA0\u201d)","Was an O camp group leader",
+    "Sings The Moon Represents My Heart"
   ],
   prompts: [
     "Has never dated (proudly \u201cA0\u201d)","Got a partner this year",
@@ -44,7 +45,8 @@ const CONFIG = {
     "Studies in a different faculty","Taught you a word in their language",
     "Has a hidden talent (ask!)","Has visited 5+ countries",
     "Recommended you a song","Is left-handed","Can name all 9 CUHK colleges",
-    "Is wearing something green","Took a selfie with you on the trail","Has seen a wild boar in CUHK"
+    "Is wearing something green","Took a selfie with you on the trail","Has seen a wild boar in CUHK",
+    "Has slept in the library","Has eaten at 7 CU canteens","Sings The Moon Represents My Heart"
   ]
 };
 /* ========================================== */
@@ -115,9 +117,13 @@ function initSetup(){
     if(!name) return $("#setupErr").textContent = "Add your name first.";
     if(!college) return $("#setupErr").textContent = "Pick your college.";
     const nEx = Math.min(excoOn() ? Number(CONFIG.excoTiles) : 0, (CONFIG.excoPrompts||[]).length, 24);
+    const exPick = shuffle(CONFIG.excoPrompts||[]).slice(0,nEx);
+    // a prompt can be in both lists; never show it twice on one card
+    const regPool = shuffle([...new Set(CONFIG.prompts)]);
+    const reg = [...regPool.filter(p=>!exPick.includes(p)), ...regPool.filter(p=>exPick.includes(p))].slice(0,24-nEx);
     const picks = shuffle([
-      ...shuffle(CONFIG.prompts).slice(0,24-nEx).map(p=>({ prompt:p })),
-      ...shuffle(CONFIG.excoPrompts||[]).slice(0,nEx).map(p=>({ prompt:p, exco:true }))
+      ...reg.map(p=>({ prompt:p })),
+      ...exPick.map(p=>({ prompt:p, exco:true }))
     ]);
     picks.splice(12,0,{ prompt:null }); // free centre
     S = { name, college, startedAt: Date.now(), cells: picks.map(p=>({ ...p, who:null, whoCollege:null, note:"" })), wonAt:null };
@@ -139,7 +145,7 @@ function renderGame(popIdx){
   $("#board").innerHTML = S.cells.map((c,i)=>{
     if(i===12) return `<div class="sq free ${winSet.has(i)?'win':''}" role="gridcell">FREE<br>trail start</div>`;
     const d = !!c.who;
-    return `<button class="sq ${d?'done':''} ${xo(c)?'exco':''} ${winSet.has(i)?'win':''} ${popIdx===i?'pop':''}" data-i="${i}" role="gridcell"
+    return `<button class="sq ${d?'done':''} ${xo(c)?'exco':''} ${winSet.has(i)?'win':''} ${popIdx===i?'pop':''} ${(c.prompt||'').length>(xo(c)?22:30)?'long':''}" data-i="${i}" role="gridcell"
       aria-label="${xo(c)?'Exco tile: ':''}${esc(c.prompt)}${d?', signed by '+esc(c.who):''}">
       ${xo(c)&&!d?'<span class="xtag">EXCO</span>':''}<span class="txt">${esc(c.prompt)}</span>
       ${d?`<span class="who">${esc(c.who)}<small>${esc(c.whoCollege)}</small></span>`:""}

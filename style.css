@@ -139,6 +139,9 @@ input[type=text]:focus,input[type=password]:focus,select:focus{border-color:var(
 .sq.exco .xtag{display:block;font-size:.72em;font-weight:700;letter-spacing:.12em;color:var(--sun-deep);margin-bottom:2px}
 .sq.exco.done{background:var(--sun);box-shadow:inset 0 0 0 2px var(--forest)}
 .sq.exco.win{box-shadow:inset 0 0 0 3px var(--forest)}
+/* long prompts shrink a little so they fit */
+.sq.long .txt{font-size:.86em;line-height:1.08}
+.sq.exco.long .xtag{font-size:.64em;margin-bottom:1px}
 .xmini{font-size:10px;font-weight:700;background:var(--sun);color:var(--ink);padding:1px 5px;border-radius:99px;margin-left:4px;letter-spacing:.06em}
 
 /* MC Rangers logo */
