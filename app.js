@@ -31,21 +31,20 @@ const CONFIG = {
   excoPrompts: [
     "Why they joined MC Rangers","Their best tip for this trail","High-five at a viewpoint",
     "Their go-to hike snack","One fun fact about them","Their best hike ever",
-    "Plays Black Magic","Does a Dem beat with you"
+    "Plays Black Magic","Does a Dem beat with you","Tells you their relationship status",
+    "Has never dated (proudly \u201cA0\u201d)","Was an O camp group leader"
   ],
   prompts: [
-    "Tells you their relationship status","Has never dated (proudly \u201cA0\u201d)","Got a partner this year","Was an O camp group leader",
-    "Has done CU Hunt","Is in a student society","Knows the game milk milk milk tea tea tea","Plays Ninja with you",
+    "Has never dated (proudly \u201cA0\u201d)","Got a partner this year",
+    "Has done CU Hunt","Is in a student society","Knows black magic milk tea",
     "Does the MTR \u201cmind the gap\u201d voice","Pulled an all-nighter this month","Got on the wrong CU bus number",
     "Says a Cantonese tongue twister","Teaches you Cantonese slang",
-    "Has hiked Lion Rock before","Is a first-year student","Speaks 3 or more languages","Was born outside Hong Kong",
-    "Can name 3 HK hiking trails","Has watched a sunrise from a peak","Brought more than 2 snacks","Has a pet at home",
-    "Can do 10 push-ups right now","Plays a musical instrument","Shares your birth month","Has never been to Lantau",
-    "Studies in a different faculty","Has been camping overnight","Taught you a word in their language","Has the same favourite food as you",
-    "Has a hidden talent (ask!)","Lives in a hall on campus","Brought a reusable bottle","Has run a 10K or more",
-    "Has visited 5+ countries","Told you a joke that made you laugh","Is a morning person","Has a part-time job",
-    "Recommended you a song","Is left-handed","Can name all 9 CUHK colleges","Wants to start a business",
-    "Is wearing something green","Took a selfie with you on the trail","Has seen a wild monkey in HK","Is the youngest in their family"
+    "Speaks 3 or more languages","Can name 3 HK hiking trails","Has a pet at home",
+    "Can do 10 push-ups right now","Plays a musical instrument","Shares your birth month",
+    "Studies in a different faculty","Taught you a word in their language",
+    "Has a hidden talent (ask!)","Has visited 5+ countries",
+    "Recommended you a song","Is left-handed","Can name all 9 CUHK colleges",
+    "Is wearing something green","Took a selfie with you on the trail","Has seen a wild boar in CUHK"
   ]
 };
 /* ========================================== */
