@@ -30,21 +30,14 @@ const CONFIG = {
   excoSignsPerExco: 1,
   excoPrompts: [
     "Why they joined MC Rangers","Their best tip for this trail","High-five at a viewpoint",
-    "Their go-to hike snack","One fun fact about them","Their best hike ever"
+    "Their go-to hike snack","One fun fact about them","Their best hike ever",
+    "Plays Black Magic","Does a Dem beat with you"
   ],
-  /* ----- HK uni culture set (toggle + count in admin) ----- */
-  hkEnabled: true,
-  hkTiles: 6,          // how many of these go on each new card
-  hkPrompts: [
-    "Tells you their relationship status","Has never dated (proudly \u201cA0\u201d)","Got a partner this year","Was an O camp group leader",
-    "Has done a uni City Hunt","Has run a student society","Teaches you a HK hand game","Plays Ninja with you",
-    "Can order milk tea in Cantonese","Does the MTR \u201cmind the gap\u201d voice","Pulled an all-nighter this month","Missed the bus by seconds",
-    "Says a Cantonese tongue twister","Teaches you Cantonese slang"
-  ],
-  // These go on exco tiles first when the HK set is on
-  hkExcoPrompts: ["Plays Black Magic","Does a Dem beat with you"],
-
   prompts: [
+    "Tells you their relationship status","Has never dated (proudly \u201cA0\u201d)","Got a partner this year","Was an O camp group leader",
+    "Has done CU Hunt","Is in a student society","Knows the game milk milk milk tea tea tea","Plays Ninja with you",
+    "Does the MTR \u201cmind the gap\u201d voice","Pulled an all-nighter this month","Got on the wrong CU bus number",
+    "Says a Cantonese tongue twister","Teaches you Cantonese slang",
     "Has hiked Lion Rock before","Is a first-year student","Speaks 3 or more languages","Was born outside Hong Kong",
     "Can name 3 HK hiking trails","Has watched a sunrise from a peak","Brought more than 2 snacks","Has a pet at home",
     "Can do 10 push-ups right now","Plays a musical instrument","Shares your birth month","Has never been to Lantau",
@@ -60,7 +53,7 @@ const CONFIG = {
 /* ---------- admin settings (config.json) ---------- */
 const RKEY = "trailbingo:remote";
 // Every setting the admin page can change. Add new admin toggles here.
-const REMOTE_KEYS = ["showSplash","winCondition","maxSignsPerPerson","ownCollegeSigns","excoEnabled","excoTiles","excoCode","excoCodeHash","excoAnyCollege","excoSignsPerExco","hkEnabled","hkTiles"];
+const REMOTE_KEYS = ["showSplash","winCondition","maxSignsPerPerson","ownCollegeSigns","excoEnabled","excoTiles","excoCode","excoCodeHash","excoAnyCollege","excoSignsPerExco"];
 function applyRemote(r){ if(r && typeof r==="object") REMOTE_KEYS.forEach(k => { if(k in r) CONFIG[k] = r[k]; }); }
 try{ applyRemote(JSON.parse(localStorage.getItem(RKEY))); }catch(e){}
 const excoOn = () => CONFIG.excoEnabled !== false && Number(CONFIG.excoTiles) > 0;
@@ -122,14 +115,10 @@ function initSetup(){
     if(college==="__other") college = $("#pCollegeOther").value.trim();
     if(!name) return $("#setupErr").textContent = "Add your name first.";
     if(!college) return $("#setupErr").textContent = "Pick your college.";
-    const hkOn = CONFIG.hkEnabled !== false;
-    const exPool = [...(hkOn ? shuffle(CONFIG.hkExcoPrompts||[]) : []), ...shuffle(CONFIG.excoPrompts||[])];
-    const nEx = Math.min(excoOn() ? Number(CONFIG.excoTiles) : 0, exPool.length, 24);
-    const nHk = hkOn ? Math.min(Math.max(0, Number(CONFIG.hkTiles) || 0), (CONFIG.hkPrompts||[]).length, 24-nEx) : 0;
+    const nEx = Math.min(excoOn() ? Number(CONFIG.excoTiles) : 0, (CONFIG.excoPrompts||[]).length, 24);
     const picks = shuffle([
-      ...shuffle(CONFIG.hkPrompts||[]).slice(0,nHk).map(p=>({ prompt:p })),
-      ...shuffle(CONFIG.prompts).slice(0,24-nEx-nHk).map(p=>({ prompt:p })),
-      ...exPool.slice(0,nEx).map(p=>({ prompt:p, exco:true }))
+      ...shuffle(CONFIG.prompts).slice(0,24-nEx).map(p=>({ prompt:p })),
+      ...shuffle(CONFIG.excoPrompts||[]).slice(0,nEx).map(p=>({ prompt:p, exco:true }))
     ]);
     picks.splice(12,0,{ prompt:null }); // free centre
     S = { name, college, startedAt: Date.now(), cells: picks.map(p=>({ ...p, who:null, whoCollege:null, note:"" })), wonAt:null };

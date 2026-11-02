@@ -1,6 +1,6 @@
 // Saves the app on the phone so it opens with no signal.
 // Bump VERSION when you want to force everyone onto a fresh copy.
-const VERSION = "trailbingo-v14";
+const VERSION = "trailbingo-v15";
 const CORE = ["./", "index.html", "style.css", "app.js", "config.json", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "icons/logo.png", "icons/logo-sm.png", "icons/favicon-64.png",
   "https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700&f[]=satoshi@400,500,700&display=swap"];
