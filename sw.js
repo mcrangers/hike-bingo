@@ -1,7 +1,7 @@
 // Saves the app on the phone so it opens with no signal.
 // Bump VERSION when you want to force everyone onto a fresh copy.
-const VERSION = "trailbingo-v17-lockdown";
-const CORE = ["./", "index.html", "style.css", "app.js", "config.json", "lockdown.js", "manifest.webmanifest",
+const VERSION = "trailbingo-v18-demo";
+const CORE = ["./", "index.html", "demo.html", "style.css", "app.js", "config.json", "lockdown.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "icons/logo.png", "icons/logo-sm.png", "icons/favicon-64.png",
   "https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700&f[]=satoshi@400,500,700&display=swap"];
 
