@@ -269,6 +269,7 @@
     `;
 
     document.body.appendChild(panel);
+    document.body.classList.add("availability-ready");
 
     message = panel.querySelector("#lock-message");
     checkButton = panel.querySelector("#lock-check");
