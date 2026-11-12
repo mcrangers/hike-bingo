@@ -235,6 +235,20 @@
         outline: 3px solid #be9135;
         outline-offset: 4px;
       }
+
+      #bingo-lockdown a.lock-demo-link {
+        display: block;
+        width: 100%;
+        margin: 0 0 12px;
+        padding: 15px;
+        border-radius: 13px;
+        background: #173e32;
+        color: white;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        text-align: center;
+      }
     `;
 
     document.head.appendChild(style);
@@ -260,6 +274,10 @@
           Checking game availability…
         </p>
 
+        <a class="lock-demo-link" href="demo.html">
+          Try a demo
+        </a>
+        
         <button id="lock-check" type="button">
           Check again
         </button>
