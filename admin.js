@@ -7,6 +7,14 @@ const TKEY = "trailbingo:adminKey";
 /* ===== Admin settings: add new toggles here (and the key to REMOTE_KEYS in app.js) =====
  * type: toggle | stepper | choice | text.  `when` hides/greys it unless another setting is on. */
 const SETTINGS = [
+    { section: "Availability" },
+  {
+    key: "lockdown",
+    type: "toggle",
+    title: "Hike-day lockdown",
+    desc: "ON: show 'Available on hike day' and block the game. OFF: let people play. Save changes to publish.",
+    def: true
+  },
   { section: "Game" },
   { key: "winCondition", type: "choice", title: "Win rule", desc: "What players need for a reward.",
     options: [["line","One line"],["blackout","Full card"]], def: "blackout" },
