@@ -277,7 +277,7 @@
         <a class="lock-demo-link" href="demo.html">
           Try a demo
         </a>
-        
+
         <button id="lock-check" type="button">
           Check again
         </button>
