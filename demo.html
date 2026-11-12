@@ -1,18 +1,441 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#173e32"><title>How to play · Trail Bingo</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f3f4ed;color:#173e32;font-family:system-ui,-apple-system,sans-serif}main{max-width:480px;margin:auto;padding:25px 20px 40px}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:35px}header strong{font-size:12px;letter-spacing:3px}a{color:inherit}.exit{font-size:13px;padding:10px}.pill{display:inline-block;background:#e1eadd;border-radius:30px;padding:8px 12px;font-size:11px;font-weight:700;letter-spacing:1px}h1{font-size:36px;line-height:1.1;letter-spacing:-1px;margin:20px 0 15px}.sub{font-size:15px;line-height:1.7;color:#647569}.panel{background:white;border:1px solid #dbe1d6;border-radius:20px;padding:22px;margin:22px 0}button,.button{font:inherit;cursor:pointer;min-height:50px;padding:14px;border:0;border-radius:12px;background:#173e32;color:white;text-align:center;text-decoration:none;display:block;width:100%;font-weight:700}button:focus-visible,a:focus-visible{outline:3px solid #c79c39;outline-offset:4px}.secondary{background:#e1eadd;color:#173e32;margin-top:10px}.quiet{text-align:center;font-size:12px;color:#647569;line-height:1.7;margin-top:20px}.challenge{display:flex;align-items:center;justify-content:center;min-height:170px;border:2px solid #8caa83;border-radius:16px;background:#f3f7ef;text-align:center;font-size:25px;font-weight:750;padding:20px}.label{display:block;font-size:12px;font-weight:700;margin:17px 0 8px}.field{padding:13px;border:1px solid #dbe1d6;background:#f7f8f4;border-radius:10px;font-size:15px}.demo-label{font-size:11px;letter-spacing:1px;color:#647569}.signed{background:#e1eddb;border-color:#6b8c5c}.signed small{display:block;font-size:13px;font-weight:500;margin-top:10px}.board{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:20px 0}.cell{aspect-ratio:1;min-height:0;border-radius:7px;background:#e8eee3;font-size:10px;padding:4px;display:flex;align-items:center;justify-content:center}.cell.demo-signed{background:#173e32;color:white}.cell.free{background:#e5cf98;color:#59491e}.rule{font-size:14px;line-height:1.7;padding:12px 0;border-bottom:1px solid #e7eade}ul{padding-left:20px;line-height:1.8;font-size:14px}footer{text-align:center;font-size:11px;color:#647569;margin-top:24px}[hidden]{display:none!important}@media(prefers-reduced-motion:no-preference){.signed{animation:pop .25s ease}@keyframes pop{50%{transform:scale(1.025)}}}
-</style></head><body><main><header><strong>MC RANGERS</strong><a class="exit" href="./">Exit demo</a></header><div id="content" aria-live="polite"></div><footer>DEMO ONLY · No real card is created or changed.</footer></main><script>
-const content=document.getElementById('content');let step=0,signed=false;let settings=null;
-const top=n=>`<span class="pill">DEMO · ${n} OF 3</span>`;
-function rules(){if(!settings)return '<p class="sub">Live event rules could not be loaded. Check the instructions in the real game on hike day.</p>';
-const win=settings.winCondition==='line'?'Complete a full row, column or diagonal.':'Fill all 24 challenge squares. The centre is free.';
-const max=Math.max(1,Number(settings.maxSignsPerPerson)||1);const own=Math.max(0,Number(settings.ownCollegeSigns)||0);
-return `<div class="rule">${win} Show your winning card to an MC Rangers exco.</div><div class="rule">One person can sign up to ${max} square${max===1?'':'s'} on your card.</div><div class="rule">${own===0?'Find signers from other colleges.':`Up to ${own} regular squares can be signed by people from your own college.`}</div>${settings.excoEnabled===true?'<div class="rule">Gold exco tiles need an MC Rangers exco and the exco code.</div>':''}`}
-function render(){
-if(step===0){content.innerHTML=top(1)+`<h1>Find someone who…</h1><p class="sub">Each square is a reason to meet another hiker.</p><div class="panel"><div class="challenge">Plays a musical instrument</div><p class="sub">Ask around. When you find someone who matches, tap the square and let them sign.</p></div><button id="next">Show me how →</button><p class="quiet">This sample uses fictional details. No need to enter your name.</p>`;document.getElementById('next').onclick=()=>{step=1;render();window.scrollTo(0,0)}}
-else if(step===1){content.innerHTML=top(2)+`<h1>${signed?'Square signed!':'Let them sign.'}</h1><p class="sub">${signed?'That’s one person met. Keep exploring and meeting new hikers.':'In the real game, the other hiker enters their name and college. Here, we’ll use Alex.'}</p><div class="panel"><div class="demo-label">PRACTICE SQUARE</div><div class="challenge ${signed?'signed':''}" style="margin-top:14px"><div>Plays a musical instrument${signed?'<small>Signed by Alex · Morningside</small>':''}</div></div>${signed?'':`<label class="label">Demo person</label><div class="field">Alex</div><label class="label">College</label><div class="field">Morningside</div><p class="quiet">Fictional signer · no data is saved</p>`}</div><button id="sign">${signed?'What happens next? →':'Sign practice square'}</button><button class="secondary" id="back">← Back</button>`;document.getElementById('sign').onclick=()=>{if(signed){step=2}else{signed=true}render();if(step===2)window.scrollTo(0,0)};document.getElementById('back').onclick=()=>{step=0;signed=false;render()}}
-else{content.innerHTML=top(3)+`<h1>You’re ready.</h1><p class="sub">Keep finding people who match your squares. Your real board starts in the game—not here.</p><div class="board" aria-label="Illustrative board with one signed square">${Array.from({length:25},(_,i)=>`<div class="cell ${i===0?'demo-signed':i===12?'free':''}">${i===0?'Alex':i===12?'FREE':''}</div>`).join('')}</div><div class="panel"><div class="demo-label">EVENT RULES</div>${rules()}</div><a class="button" href="./">Back to Trail Bingo</a><button class="secondary" id="again">Try the demo again</button><p class="quiet">If the game is locked, come back when the organiser opens it on hike day.</p>`;document.getElementById('again').onclick=()=>{step=0;signed=false;render();window.scrollTo(0,0)}}
-}
-render();
-fetch('config.json?demo='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw Error();return r.json()}).then(s=>{if(s&&typeof s==='object'){settings=s;if(step===2)render()}}).catch(()=>{});
-</script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta name="theme-color" content="#173e32">
+
+  <title>How to play · Trail Bingo</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f3f4ed;
+      color: #173e32;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    main {
+      max-width: 480px;
+      margin: auto;
+      padding: 25px 20px 40px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 35px;
+    }
+
+    header strong {
+      font-size: 12px;
+      letter-spacing: 3px;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .exit {
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 30px;
+      background: #e1eadd;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    h1 {
+      margin: 20px 0 15px;
+      font-size: 36px;
+      line-height: 1.1;
+      letter-spacing: -1px;
+    }
+
+    .sub {
+      color: #647569;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .panel {
+      margin: 22px 0;
+      padding: 22px;
+      border: 1px solid #dbe1d6;
+      border-radius: 20px;
+      background: white;
+    }
+
+    button,
+    .button {
+      display: block;
+      width: 100%;
+      min-height: 50px;
+      padding: 14px;
+      border: 0;
+      border-radius: 12px;
+      background: #173e32;
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid #c79c39;
+      outline-offset: 4px;
+    }
+
+    .secondary {
+      margin-top: 10px;
+      background: #e1eadd;
+      color: #173e32;
+    }
+
+    .quiet {
+      margin-top: 20px;
+      color: #647569;
+      font-size: 12px;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    .challenge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 170px;
+      padding: 20px;
+      border: 2px solid #8caa83;
+      border-radius: 16px;
+      background: #f3f7ef;
+      font-size: 25px;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    .practice-challenge {
+      margin-top: 14px;
+    }
+
+    .label {
+      display: block;
+      margin: 17px 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .field {
+      padding: 13px;
+      border: 1px solid #dbe1d6;
+      border-radius: 10px;
+      background: #f7f8f4;
+      font-size: 15px;
+    }
+
+    .demo-label {
+      color: #647569;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .signed {
+      border-color: #6b8c5c;
+      background: #e1eddb;
+    }
+
+    .signed small {
+      display: block;
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin: 20px 0;
+    }
+
+    .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1;
+      min-height: 0;
+      padding: 4px;
+      border-radius: 7px;
+      background: #e8eee3;
+      font-size: 10px;
+    }
+
+    .cell.demo-signed {
+      background: #173e32;
+      color: white;
+    }
+
+    .cell.free {
+      background: #e5cf98;
+      color: #59491e;
+    }
+
+    .rule {
+      padding: 12px 0;
+      border-bottom: 1px solid #e7eade;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    footer {
+      margin-top: 24px;
+      color: #647569;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .signed {
+        animation: pop 0.25s ease;
+      }
+
+      @keyframes pop {
+        50% {
+          transform: scale(1.025);
+        }
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <strong>MC RANGERS</strong>
+
+      <a class="exit" href="/hike-bingo/index.html">
+        Exit demo
+      </a>
+    </header>
+
+    <div id="content" aria-live="polite">
+      <p class="sub">Loading the practice walkthrough…</p>
+    </div>
+
+    <noscript>
+      <p class="sub">
+        Please enable JavaScript to use the interactive demo.
+      </p>
+
+      <a class="button" href="/hike-bingo/index.html">
+        Back to Trail Bingo
+      </a>
+    </noscript>
+
+    <footer>
+      DEMO ONLY · No real card is created or changed.
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const content = document.getElementById("content");
+
+      let step = 0;
+      let signed = false;
+      let settings = null;
+
+      function demoStepLabel(number) {
+        return `
+          <span class="pill">
+            DEMO · ${number} OF 3
+          </span>
+        `;
+      }
+
+      function rules() {
+        if (!settings) {
+          return `
+            <p class="sub">
+              Live event rules could not be loaded.
+              Check the instructions in the real game on hike day.
+            </p>
+          `;
+        }
+
+        const win = settings.winCondition === "line"
+          ? "Complete a full row, column or diagonal."
+          : "Fill all 24 challenge squares. The centre is free.";
+
+        const max = Math.max(
+          1,
+          Number(settings.maxSignsPerPerson) || 1
+        );
+
+        const own = Math.max(
+          0,
+          Number(settings.ownCollegeSigns) || 0
+        );
+
+        const collegeRule = own === 0
+          ? "Find signers from other colleges."
+          : `Up to ${own} regular squares can be signed by people from your own college.`;
+
+        const excoRule = settings.excoEnabled === true
+          ? `
+            <div class="rule">
+              Gold exco tiles need an MC Rangers exco
+              and the exco code.
+            </div>
+          `
+          : "";
+
+        return `
+          <div class="rule">
+            ${win}
+            Show your winning card to an MC Rangers exco.
+          </div>
+
+          <div class="rule">
+            One person can sign up to ${max}
+            square${max === 1 ? "" : "s"} on your card.
+          </div>
+
+          <div class="rule">
+            ${collegeRule}
+          </div>
+
+          ${excoRule}
+        `;
+      }
+
+      function scrollToStart() {
+        window.scrollTo(0, 0);
+      }
+
+      function renderFirstStep() {
+        content.innerHTML = `
+          ${demoStepLabel(1)}
+
+          <h1>Find someone who…</h1>
+
+          <p class="sub">
+            Each square is a reason to meet another hiker.
+          </p>
+
+          <div class="panel">
+            <div class="challenge">
+              Plays a musical instrument
+            </div>
+
+            <p class="sub">
+              Ask around. When you find someone who matches,
+              tap the square and let them sign.
+            </p>
+          </div>
+
+          <button id="next" type="button">
+            Show me how →
+          </button>
+
+          <p class="quiet">
+            This sample uses fictional details.
+            No need to enter your name.
+          </p>
+        `;
+
+        document.getElementById("next").onclick = () => {
+          step = 1;
+          render();
+          scrollToStart();
+        };
+      }
+
+      function renderSigningStep() {
+        const title = signed
+          ? "Square signed!"
+          : "Let them sign.";
+
+        const description = signed
+          ? "That’s one person met. Keep exploring and meeting new hikers."
+          : "In the real game, the other hiker enters their name and college. Here, we’ll use Alex.";
+
+        const signature = signed
+          ? "<small>Signed by Alex · Morningside</small>"
+          : "";
+
+        const practiceDetails = signed
+          ? ""
+          : `
+            <div class="label">Demo person</div>
+            <div class="field">Alex</div>
+
+            <div class="label">College</div>
+            <div class="field">Morningside</div>
+
+            <p class="quiet">
+              Fictional signer · no data is saved
+            </p>
+          `;
+
+        content.innerHTML = `
+          ${demoStepLabel(2)}
+
+          <h1>${title}</h1>
+
+          <p class="sub">
+            ${description}
+          </p>
+
+          <div class="panel">
+            <div class="demo-label">
+              PRACTICE SQUARE
+            </div>
+
+            <div
+              class="challenge practice-challenge ${signed ? "signed" : ""}"
+            >
+              <div>
+                Plays a musical instrument
+                ${signature}
+              </div>
+            </div>
+
+            ${practiceDetails}
+          </div>
+
+          <button id="sign" type="button">
+            ${signed ? "What happens next? →" : "Sign practice square"}
+          </button>
+
+          <button
+            class="secondary"
+            id="back"
+            type="button"
+          >
+            ←
