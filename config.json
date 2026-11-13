@@ -1,5 +1,5 @@
 {
-  "lockdown": true,
+  "lockdown": false,
   "winCondition": "blackout",
   "maxSignsPerPerson": 2,
   "ownCollegeSigns": 4,
