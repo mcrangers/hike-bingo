@@ -3,7 +3,7 @@
   "winCondition": "blackout",
   "maxSignsPerPerson": 2,
   "ownCollegeSigns": 4,
-  "showSplash": true,
+  "showSplash": false,
   "excoEnabled": true,
   "excoTiles": 4,
   "excoCode": "5536",
